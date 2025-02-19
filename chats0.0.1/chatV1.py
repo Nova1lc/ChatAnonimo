@@ -24,6 +24,7 @@ def banner():
     print("[1] Iniciar sesión")
     print("[2] Ver historial de mensajes")
     print("[3] Salir")
+    print("[4] Ayuda")
     print("=" * 40)
 
 def obtener_historial():
@@ -34,6 +35,7 @@ def obtener_historial():
         for msg in mensajes:
             nombre = msg.get("name", "Desconocido")
             mensaje = msg.get("mensje", "[Mensaje no disponible]")
+            # Aplicando colores según el nombre de usuario
             color = COLORS.get(nombre, COLORS["default"])
             print(f"{color}{nombre}\033[0m >> {mensaje}")
         
@@ -91,13 +93,21 @@ def subir_imagen():
 
 def enviar_mensaje(nombre):
     while True:
-        mensaje = input(f"{nombre} (>> Escribe tu mensaje o '/salir'): ").strip()
-        
-        if mensaje.lower() == "/salir":
+        mensaje = input(f"{nombre} (>> 'ms/' o 'exit/' o 'file/' o 'help/'): ").strip()
+
+        if mensaje.lower() == "exit/":
             print("[INFO] Saliendo del chat...")
             break
 
-        if mensaje.startswith("Foto/"):
+        if mensaje.lower() == "help/":
+            print("\n[ AYUDA ]")
+            print("ms/ >> Para enviar mensajes, ejemplo: ms/Hola Mundo")
+            print("file/ >> Para Enviar Un Archivo Temporal")
+            print("exit/ >> Para salirse del chat")
+            print("=" * 40)
+            continue
+
+        if mensaje.startswith("file/"):
             imagen_url = subir_imagen()
             if imagen_url:
                 mensaje = imagen_url
@@ -123,7 +133,7 @@ def enviar_mensaje(nombre):
 
 while True:
     banner()
-    opcion = input("Selecciona una opción (1-3): ").strip()
+    opcion = input("Selecciona una opción (1-4): ").strip()
 
     if opcion == "1":
         usuario = iniciar_sesion()
@@ -134,5 +144,11 @@ while True:
     elif opcion == "3":
         print("[INFO] Saliendo del chat. ¡Hasta luego!")
         break
+    elif opcion == "4":
+        print("\n[ AYUDA ]")
+        print("ms/ >> Para enviar mensajes, ejemplo: ms/Hola Mundo")
+        print("file/ >> Para Enviar Un Archivo Temporal")
+        print("exit/ >> Para salirse del chat")
+        print("=" * 40)
     else:
         print("[X] Opción no válida. Intenta de nuevo.")
