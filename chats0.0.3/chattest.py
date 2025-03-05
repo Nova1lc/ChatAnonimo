@@ -2,12 +2,13 @@ import requests
 import time
 import tkinter as tk
 from tkinter import filedialog
-import re
 import webbrowser
 
+# Configuración de API
 API_URL = "https://66cab9c759f4350f064fbdc9.mockapi.io/Bsz/api/V1/chats"
-LITTERBOX_API = "https://cors-anywhere.herokuapp.com/https://catbox.moe/user/api.php"  # Proxy necesario para CORS
+LITTERBOX_API = "https://cors-anywhere.herokuapp.com/https://catbox.moe/user/api.php"
 
+# Colores por usuario
 COLORS = {
     "AvaStrOficial": "\033[91m",  # Rojo
     "Z-Zuka": "\033[91m",  # Rojo
@@ -19,6 +20,7 @@ COLORS = {
     "default": "\033[0m"  # Reset
 }
 
+# Función para mostrar el banner del menú
 def banner():
     print("=" * 40)
     print("       [ CHAT ANÓNIMO ]       ")
@@ -29,14 +31,14 @@ def banner():
     print("[4] Ayuda")
     print("=" * 40)
 
+# Función para registrar un usuario
 def registrarse():
     nombre = input("Ingrese un nuevo nombre de usuario: ").strip()
     if not nombre:
         print("[X] El nombre de usuario no puede estar vacío.")
         return None
     
-    nuevo_usuario = {"name": nombre}
-    response = requests.post(API_URL, json=nuevo_usuario)
+    response = requests.post(API_URL, json={"name": nombre})
     if response.status_code == 201:
         print(f"[✓] Usuario {nombre} registrado exitosamente.")
         return nombre
@@ -44,6 +46,7 @@ def registrarse():
         print("[X] No se pudo registrar el usuario.")
         return None
 
+# Función para iniciar sesión
 def iniciar_sesion():
     nombre = input("Ingrese su nombre de usuario: ").strip()
     if not nombre:
@@ -51,6 +54,7 @@ def iniciar_sesion():
         return None
     return nombre
 
+# Función para obtener el historial de mensajes
 def obtener_historial():
     response = requests.get(API_URL)
     if response.status_code == 200:
@@ -64,6 +68,7 @@ def obtener_historial():
     else:
         print("[ERROR] No se pudo obtener el historial de mensajes.")
 
+# Función para obtener enlaces compartidos
 def obtener_galeria():
     response = requests.get(API_URL)
     if response.status_code == 200:
@@ -78,10 +83,12 @@ def obtener_galeria():
     else:
         print("[ERROR] No se pudo obtener la galería de enlaces.")
 
+# Función para abrir enlaces en el navegador
 def abrir_enlace(enlace):
     print(f"[INFO] Abriendo {enlace} en el navegador...")
     webbrowser.open(enlace)
 
+# Función para subir imágenes a Catbox
 def subir_imagen():
     root = tk.Tk()
     root.withdraw()
@@ -91,22 +98,9 @@ def subir_imagen():
         print("[X] No se seleccionó ningún archivo.")
         return None
 
-    # Validar tipo de archivo
-    allowed_types = ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
-    try:
-        with open(archivo, 'rb') as f:
-            file_type = requests.utils.guess_type(archivo)[0]
-            if file_type not in allowed_types:
-                print("[X] Por favor, selecciona una imagen válida (PNG, JPG, WEBP, GIF).")
-                return None
-    except Exception as e:
-        print(f"[X] Error al intentar leer el archivo: {e}")
-        return None
-
-    # Enviar el archivo
     files = {'fileToUpload': open(archivo, 'rb')}
     data = {'reqtype': 'fileupload'}
-
+    
     try:
         response = requests.post(LITTERBOX_API, files=files, data=data)
         files['fileToUpload'].close()
@@ -119,60 +113,59 @@ def subir_imagen():
         if data.startswith("https://"):
             print(f"[✓] Imagen cargada exitosamente: {data}")
             return data
-        else:
-            print("[X] Error en la respuesta de la API.")
-            return None
-    else:
-        print(f"[X] Error en la subida del archivo. Código de estado: {response.status_code}")
-        return None
+    print("[X] Error en la subida del archivo.")
+    return None
 
+# Función para enviar mensajes
 def enviar_mensaje(nombre):
     while True:
         mensaje = input(f"{nombre} (>> 'ms/' o 'exit/' o 'file/' o 'help/' o 'galeri/' o 'web/'): ").strip()
+        
         if mensaje.lower() == "exit/":
             print("[INFO] Saliendo del chat...")
             break
-        if mensaje.lower() == "help/":
+        elif mensaje.lower() == "help/":
             print("\n[ AYUDA ]")
-            print("ms/ >> Para enviar mensajes, ejemplo: ms/Hola Mundo")
+            print("ms/ >> Para enviar mensajes")
             print("file/ >> Para Enviar Un Archivo Temporal")
-            print("exit/ >> Para salirse del chat")
-            print("galeri/ >> Para ver los enlaces enviados")
-            print("web/URL >> Para abrir un enlace en el navegador")
-            print("=" * 40)
+            print("exit/ >> Para salir del chat")
+            print("galeri/ >> Para ver enlaces compartidos")
+            print("web/URL >> Para abrir un enlace")
             continue
-        if mensaje.lower() == "galeri/":
+        elif mensaje.lower() == "galeri/":
             obtener_galeria()
             continue
-        if mensaje.lower().startswith("web/"):
+        elif mensaje.lower().startswith("web/"):
             enlace = mensaje[4:].strip()
-            if enlace.startswith("https://") or enlace.startswith("http://"):
+            if enlace.startswith("http"):
                 abrir_enlace(enlace)
             else:
-                print("[X] Debes ingresar un enlace válido con 'https://' o 'http://'")
+                print("[X] URL no válida.")
             continue
-        if mensaje.lower() == "file/":
+        elif mensaje.lower() == "file/":
             url_archivo = subir_imagen()
             if url_archivo:
                 mensaje = url_archivo
             else:
                 continue
-        if not mensaje.startswith("ms/"):
-            print("[X] Debes empezar tu mensaje con 'ms/'. Ejemplo: ms/Hola a todos.")
+        elif not mensaje.startswith("ms/"):
+            print("[X] Usa 'ms/' para enviar mensajes.")
             continue
+        
         mensaje = mensaje[3:].strip()
-        nuevo_mensaje = {"name": nombre, "mensje": mensaje}
-        response = requests.post(API_URL, json=nuevo_mensaje)
+        response = requests.post(API_URL, json={"name": nombre, "mensje": mensaje})
         if response.status_code == 201:
             print(f"[✓] Mensaje enviado: {mensaje}")
             obtener_historial()
         else:
-            print("[X] No se pudo enviar el mensaje.")
+            print("[X] Error al enviar el mensaje.")
         time.sleep(3)
 
+# Menú principal
 while True:
     banner()
     opcion = input("Selecciona una opción (1-4): ").strip()
+    
     if opcion == "1":
         usuario = iniciar_sesion()
         if usuario:
@@ -184,8 +177,7 @@ while True:
         break
     elif opcion == "4":
         print("\n[ AYUDA ]")
-        print("ms/ >> Para enviar mensajes, ejemplo: ms/Hola Mundo")
-        print("exit/ >> Para salirse del chat")
-        print("=" * 40)
+        print("ms/ >> Para enviar mensajes")
+        print("exit/ >> Para salir")
     else:
-        print("[X] Opción no válida. Intenta de nuevo.")
+        print("[X] Opción no válida.")
