@@ -177,7 +177,10 @@ while True:
         break
     elif opcion == "4":
         print("\n[ AYUDA ]")
-        print("ms/ >> Para enviar mensajes")
-        print("exit/ >> Para salir")
+            print("ms/ >> Para enviar mensajes, ejemplo: ms/Hola Mundo")
+            print("file/ >> Para Enviar Un Archivo Temporal")
+            print("exit/ >> Para salirse del chat")
+            print("galeri/ >> Para ver los enlaces enviados")
+            print("web/URL >> Para abrir un enlace")
     else:
         print("[X] Opción no válida.")
